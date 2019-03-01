@@ -4,6 +4,7 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../src/i2c.c \
 ../src/main.c \
 ../src/syscalls.c \
 ../src/system_stm32f10x.c \
@@ -11,6 +12,7 @@ C_SRCS += \
 ../src/tm_stm32f4_mpu6050.c 
 
 OBJS += \
+./src/i2c.o \
 ./src/main.o \
 ./src/syscalls.o \
 ./src/system_stm32f10x.o \
@@ -18,6 +20,7 @@ OBJS += \
 ./src/tm_stm32f4_mpu6050.o 
 
 C_DEPS += \
+./src/i2c.d \
 ./src/main.d \
 ./src/syscalls.d \
 ./src/system_stm32f10x.d \

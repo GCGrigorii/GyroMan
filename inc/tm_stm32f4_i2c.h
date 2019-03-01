@@ -320,7 +320,7 @@ void TM_I2C_WriteMultiNoRegister(I2C_TypeDef* I2Cx, uint8_t address, uint8_t* da
 /**
  * @brief  Checks if device is connected to I2C bus
  * @param  *I2Cx: I2C used
- * @param  address: 7 bit slave address, left aligned, bits 7:1 are used, LSB bit is not used
+ * @parsam  address: 7 bit slave address, left aligned, bits 7:1 are used, LSB bit is not used
  * @retval Device status:
  *            - 0: Device is not connected
  *            - > 0: Device is connected

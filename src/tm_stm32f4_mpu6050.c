@@ -64,7 +64,8 @@ TM_MPU6050_Result_t TM_MPU6050_Init(TM_MPU6050_t* DataStruct, TM_MPU6050_Device_
 			DataStruct->Acce_Mult = (float)1 / MPU6050_ACCE_SENS_8; 
 			break;
 		case TM_MPU6050_Accelerometer_16G:
-			DataStruct->Acce_Mult = (float)1 / MPU6050_ACCE_SENS_16; 
+			DataStruct->Acce_Mult = (float)1 / MPU6050_ACCE_SENS_16;
+			break;
 		default:
 			break;
 	}
@@ -80,7 +81,8 @@ TM_MPU6050_Result_t TM_MPU6050_Init(TM_MPU6050_t* DataStruct, TM_MPU6050_Device_
 			DataStruct->Gyro_Mult = (float)1 / MPU6050_GYRO_SENS_1000; 
 			break;
 		case TM_MPU6050_Gyroscope_2000s:
-			DataStruct->Gyro_Mult = (float)1 / MPU6050_GYRO_SENS_2000; 
+			DataStruct->Gyro_Mult = (float)1 / MPU6050_GYRO_SENS_2000;
+			break;
 		default:
 			break;
 	}

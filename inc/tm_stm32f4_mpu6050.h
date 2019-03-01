@@ -219,6 +219,16 @@ typedef struct {
 	float Temperature;       /*!< Temperature in degrees */
 } TM_MPU6050_t;
 
+typedef struct {
+	/* Public */
+	float Accelerometer_X; /*!< Accelerometer value X axis */
+	float Accelerometer_Y; /*!< Accelerometer value Y axis */
+	float Accelerometer_Z; /*!< Accelerometer value Z axis */
+	float Gyroscope_X;     /*!< Gyroscope value X axis */
+	float Gyroscope_Y;     /*!< Gyroscope value Y axis */
+	float Gyroscope_Z;     /*!< Gyroscope value Z axis */
+	float Temperature;       /*!< Temperature in degrees */
+} TM_MPU6050_t_data;
 /**
  * @}
  */

@@ -17,7 +17,6 @@
 #include "stm32f10x_tim.h"
 #include "main.h"
 #include "tm_stm32f4_mpu6050.h"
-//#include <stdio.h>
 #include <string.h>
 #include <stdio.h>
 ///
@@ -27,16 +26,19 @@ volatile char RXi;
 volatile char RXc;
 volatile char RX_BUF[RX_BUF_SIZE] = {'\0'};
 volatile char buffer[80] = {'\0'};
-char str[120];
-char I2C_FLAG_READ = 0;
-TM_MPU6050_t MPU6050_Data0;
-uint8_t timer = 0;
+volatile char str[120];
+volatile char I2C_FLAG_READ = 0;
+TM_MPU6050_t MPU6050_Raw;
+TM_MPU6050_t_data MPU6050_Raw_factor;
+TM_MPU6050_t_data MPU6050_Data;
+volatile uint8_t timer = 0;
 
-__attribute__((always_inline)) void gpio_init(void);
-__attribute__((always_inline)) char init_();
-__attribute__((always_inline)) void rcc_init();
-__attribute__((always_inline)) void i2c_init();
-__attribute__((always_inline)) void tim4_init();
+void gpio_init(void);
+char init_();
+void rcc_init();
+void i2c_init();
+void tim4_init();
+void uart_init();
 void USART1_IRQHandler(void);
 void TIM4_IRQHandler(void);
 void USARTSendDMA(char*);
@@ -54,9 +56,10 @@ int main(void)
 
 	uint8_t sensor1 = 0;
 	init_();
+
 	for(int i = 0; i < 1000000; i++);
 
-	sensor1 = TM_MPU6050_Init(&MPU6050_Data0, TM_MPU6050_Device_0, TM_MPU6050_Accelerometer_8G, TM_MPU6050_Gyroscope_250s);
+	sensor1 = TM_MPU6050_Init(&MPU6050_Raw, TM_MPU6050_Device_0, TM_MPU6050_Accelerometer_2G, TM_MPU6050_Gyroscope_250s);
 	if (sensor1 == TM_MPU6050_Result_Ok) {
 	        /* Display message to user */
 		USARTSendDMA("MPU6050 sensor 0 is ready to use!\r\n");
@@ -67,9 +70,29 @@ int main(void)
 	else
 	{
 		strcmp(buffer, itoa(sensor1));
-		strcmp(buffer, " error\r\n");
+		strcmp(buffer, " - MPU6050 sensor start error\r\n");
 		USARTSendDMA(buffer);
+		while(1);
 	}
+	for(int i = 0; i < 1000000; i++);
+
+	for (int i = 0; i < 10; i++ )
+	{
+		TM_MPU6050_ReadAll(&MPU6050_Raw);
+		MPU6050_Raw_factor.Accelerometer_X += (float)MPU6050_Raw.Accelerometer_X;
+		MPU6050_Raw_factor.Accelerometer_Y += (float)MPU6050_Raw.Accelerometer_Y;
+		MPU6050_Raw_factor.Accelerometer_Z += (float)MPU6050_Raw.Accelerometer_Z;
+		MPU6050_Raw_factor.Gyroscope_X += (float)MPU6050_Raw.Gyroscope_X;
+		MPU6050_Raw_factor.Gyroscope_Y += (float)MPU6050_Raw.Gyroscope_Y;
+		MPU6050_Raw_factor.Gyroscope_Z += (float)MPU6050_Raw.Gyroscope_Z;
+	}
+	MPU6050_Raw_factor.Accelerometer_X = MPU6050_Raw_factor.Accelerometer_X / 10;
+	MPU6050_Raw_factor.Accelerometer_Y = MPU6050_Raw_factor.Accelerometer_Y / 10;
+	MPU6050_Raw_factor.Accelerometer_Z = MPU6050_Raw_factor.Accelerometer_Z / 10;
+	MPU6050_Raw_factor.Gyroscope_X = MPU6050_Raw_factor.Gyroscope_X / 10;
+	MPU6050_Raw_factor.Gyroscope_Y = MPU6050_Raw_factor.Gyroscope_Y / 10;
+	MPU6050_Raw_factor.Gyroscope_Z = MPU6050_Raw_factor.Gyroscope_Z / 10;
+
 	for(int i = 0; i < 1000000; i++);
     USARTSendDMA("Hello.\r\nUSART1 is ready.\r\n");
     for(int i = 0; i < 1000000; i++);
@@ -105,13 +128,13 @@ void cycle()
 		    		if (strncmp(strupr(RX_BUF), "DATA\r", 5) == 0)
 		    		{
 		    			USARTSendDMA("THIS IS A COMMAND \"DATA\"!!!\r\n");
-		    			 sprintf(str, "1. Accelerometer\n- X:%d\n- Y:%d\n- Z:%d\nGyroscope\n- X:%d\n- Y:%d\n- Z:%d\n\n\n",
-		    			                    MPU6050_Data0.Accelerometer_X,
-		    			                    MPU6050_Data0.Accelerometer_Y,
-		    			                    MPU6050_Data0.Accelerometer_Z,
-		    			                    MPU6050_Data0.Gyroscope_X,
-		    			                    MPU6050_Data0.Gyroscope_Y,
-		    			                    MPU6050_Data0.Gyroscope_Z
+		    			 sprintf(str, "Accelerometer X:%f Y:%f Z:%f Gyroscope X:%f Y:%f Z:%f\r\n",
+		    			                    MPU6050_Data.Accelerometer_X,
+		    			                    MPU6050_Data.Accelerometer_Y,
+		    			                    MPU6050_Data.Accelerometer_Z,
+		    			                    MPU6050_Data.Gyroscope_X,
+		    			                    MPU6050_Data.Gyroscope_Y,
+		    			                    MPU6050_Data.Gyroscope_Z
 		    			                );
 		    			 USARTSendDMA(str);
 		    		}
@@ -120,16 +143,22 @@ void cycle()
 		    	}
 		if (I2C_FLAG_READ == 1)
 		{
-			 TM_MPU6050_ReadAll(&MPU6050_Data0);
+			 TM_MPU6050_ReadAll(&MPU6050_Raw);
+			 MPU6050_Data.Accelerometer_X = ((float)MPU6050_Raw.Accelerometer_X - MPU6050_Raw_factor.Accelerometer_X) / 16384;
+			 MPU6050_Data.Accelerometer_Y = ((float)MPU6050_Raw.Accelerometer_Y - MPU6050_Raw_factor.Accelerometer_Y) / 16384;
+			 MPU6050_Data.Accelerometer_Z = ((float)MPU6050_Raw.Accelerometer_Z - MPU6050_Raw_factor.Accelerometer_Z) / 16384;
+			 MPU6050_Data.Gyroscope_X += ((float)MPU6050_Raw.Gyroscope_X - MPU6050_Raw_factor.Gyroscope_X) / 131 / 10 ;
+			 MPU6050_Data.Gyroscope_Y += ((float)MPU6050_Raw.Gyroscope_Y - MPU6050_Raw_factor.Gyroscope_Y) / 131 / 10;
+			 MPU6050_Data.Gyroscope_Z += ((float)MPU6050_Raw.Gyroscope_Z - MPU6050_Raw_factor.Gyroscope_Z) / 131 / 10;
 			 I2C_FLAG_READ = 0;
 			 GPIOB->ODR ^= GPIO_Pin_12;
-			 sprintf(str, "1. Accelerometer\n- X:%d\n- Y:%d\n- Z:%d\nGyroscope\n- X:%d\n- Y:%d\n- Z:%d\n\n\r\n",
-					    			                    MPU6050_Data0.Accelerometer_X,
-					    			                    MPU6050_Data0.Accelerometer_Y,
-					    			                    MPU6050_Data0.Accelerometer_Z,
-					    			                    MPU6050_Data0.Gyroscope_X,
-					    			                    MPU6050_Data0.Gyroscope_Y,
-					    			                    MPU6050_Data0.Gyroscope_Z
+			 sprintf(str, "A\G X:%f Y:%f \r\n",
+					    			                    MPU6050_Data.Accelerometer_X,
+					    			                    MPU6050_Data.Accelerometer_Y,
+					    			                    MPU6050_Data.Accelerometer_Z,
+					    			                    MPU6050_Data.Gyroscope_X,
+					    			                    MPU6050_Data.Gyroscope_Y,
+					    			                    MPU6050_Data.Gyroscope_Z
 					    			                );
 					    			 USARTSendDMA(str);
 		}
@@ -138,7 +167,7 @@ void cycle()
 }
 
 
-__attribute__((always_inline)) char init_()
+char init_()
 {
 	rcc_init();
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1 | RCC_APB1Periph_TIM4, ENABLE);
@@ -158,7 +187,7 @@ __attribute__((always_inline)) char init_()
  * Init a pin's / function
  * C13 - out_od
  * */
-__attribute__((always_inline)) void gpio_init(void)
+void gpio_init(void)
 {
 	GPIO_InitTypeDef  GPIO_InitStructure;
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
@@ -168,7 +197,7 @@ __attribute__((always_inline)) void gpio_init(void)
 }
 
 
-__attribute__((always_inline)) void rcc_init()
+void rcc_init()
 {
 	ErrorStatus HSEStartUpStatus;
 	RCC_DeInit();
@@ -210,7 +239,7 @@ __attribute__((always_inline)) void rcc_init()
 }
 
 
-__attribute__((always_inline)) void uart_init()
+ void uart_init()
 {
 	/* DMA */
 		DMA_InitTypeDef DMA_InitStruct;
@@ -292,7 +321,7 @@ __attribute__((always_inline)) void uart_init()
 }
 
 
-__attribute__((always_inline)) void i2c_init()
+void i2c_init()
 {
 	 I2C_InitTypeDef  I2C_InitStructure;
 	    GPIO_InitTypeDef  GPIO_InitStructure;
@@ -318,14 +347,14 @@ __attribute__((always_inline)) void i2c_init()
 }
 
 
-__attribute__((always_inline)) void tim4_init()
+void tim4_init()
 {
 	 TIM_TimeBaseInitTypeDef TIMER_InitStructure;
 	 NVIC_InitTypeDef NVIC_InitStructure;
 	 TIM_TimeBaseStructInit(&TIMER_InitStructure);
 	 TIMER_InitStructure.TIM_CounterMode = TIM_CounterMode_Up;
-	 TIMER_InitStructure.TIM_Prescaler = 720000;
-	 TIMER_InitStructure.TIM_Period = 100;
+	 TIMER_InitStructure.TIM_Prescaler = 7200;
+	 TIMER_InitStructure.TIM_Period = 1000;
 	 TIM_TimeBaseInit(TIM4, &TIMER_InitStructure);
 	 TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
 	 TIM_Cmd(TIM4, ENABLE);
