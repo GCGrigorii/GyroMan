@@ -19,7 +19,11 @@
 #include "tm_stm32f4_mpu6050.h"
 #include <string.h>
 #include <stdio.h>
+// #include "../inc/MadgwickAHRS.h"
+#include "../inc/MahonyAHRS.h"
 ///
+#define TIIME_FACTOR 100
+#define TIMER_DEF 20
 #define RX_BUF_SIZE 80
 volatile char RX_FLAG_END_LINE = 0;
 volatile char RXi;
@@ -28,10 +32,19 @@ volatile char RX_BUF[RX_BUF_SIZE] = {'\0'};
 volatile char buffer[80] = {'\0'};
 volatile char str[120];
 volatile char I2C_FLAG_READ = 0;
+volatile char state = 0;
 TM_MPU6050_t MPU6050_Raw;
 TM_MPU6050_t_data MPU6050_Raw_factor;
 TM_MPU6050_t_data MPU6050_Data;
 volatile uint8_t timer = 0;
+
+// majvic filter definitions
+#define deltat 0.010f // sampling period in seconds (shown as 25 ms)
+#define gyroMeasError 3.14159265358979f * (5.0f / 180.0f) // gyroscope measurement error in rad/s (shown as 5 deg/s)
+#define beta sqrt(3.0f / 4.0f) * gyroMeasError // compute beta
+// Global system variables
+
+// majvic def end
 
 void gpio_init(void);
 char init_();
@@ -48,7 +61,7 @@ void cycle();
 void I2C_StartTxRx (I2C_TypeDef*, uint8_t, uint8_t);
 void I2C_Tx (I2C_TypeDef*, uint8_t);
 uint8_t I2C_Rx (I2C_TypeDef*);
-
+void filterUpdate(float w_x, float w_y, float w_z, float a_x, float a_y, float a_z);
 //mpu addr 0x68 if ad0 low
 // don't forget I2C_Generate STOP(I2Cx, ENABLE).
 int main(void)
@@ -58,11 +71,12 @@ int main(void)
 	init_();
 
 	for(int i = 0; i < 1000000; i++);
-
-	sensor1 = TM_MPU6050_Init(&MPU6050_Raw, TM_MPU6050_Device_0, TM_MPU6050_Accelerometer_2G, TM_MPU6050_Gyroscope_250s);
+	USARTSendDMA("INIT_START\r\n");
+	sensor1 = TM_MPU6050_Init(&MPU6050_Raw, TM_MPU6050_Device_0,
+		TM_MPU6050_Accelerometer_2G, TM_MPU6050_Gyroscope_500s);
 	if (sensor1 == TM_MPU6050_Result_Ok) {
 	        /* Display message to user */
-		USARTSendDMA("MPU6050 sensor 0 is ready to use!\r\n");
+		USARTSendDMA("MPU6050_INITED\r\n");
 
 	        /* Sensor 1 OK */
 	        sensor1 = 1;
@@ -70,13 +84,13 @@ int main(void)
 	else
 	{
 		strcmp(buffer, itoa(sensor1));
-		strcmp(buffer, " - MPU6050 sensor start error\r\n");
+		strcmp(buffer, " - MPU6050_INIT_ERROR\r\n");
 		USARTSendDMA(buffer);
 		while(1);
 	}
 	for(int i = 0; i < 1000000; i++);
 
-	for (int i = 0; i < 10; i++ )
+	for (int i = 0; i < 1000; i++ )
 	{
 		TM_MPU6050_ReadAll(&MPU6050_Raw);
 		MPU6050_Raw_factor.Accelerometer_X += (float)MPU6050_Raw.Accelerometer_X;
@@ -86,16 +100,36 @@ int main(void)
 		MPU6050_Raw_factor.Gyroscope_Y += (float)MPU6050_Raw.Gyroscope_Y;
 		MPU6050_Raw_factor.Gyroscope_Z += (float)MPU6050_Raw.Gyroscope_Z;
 	}
-	MPU6050_Raw_factor.Accelerometer_X = MPU6050_Raw_factor.Accelerometer_X / 10;
-	MPU6050_Raw_factor.Accelerometer_Y = MPU6050_Raw_factor.Accelerometer_Y / 10;
-	MPU6050_Raw_factor.Accelerometer_Z = MPU6050_Raw_factor.Accelerometer_Z / 10;
-	MPU6050_Raw_factor.Gyroscope_X = MPU6050_Raw_factor.Gyroscope_X / 10;
-	MPU6050_Raw_factor.Gyroscope_Y = MPU6050_Raw_factor.Gyroscope_Y / 10;
-	MPU6050_Raw_factor.Gyroscope_Z = MPU6050_Raw_factor.Gyroscope_Z / 10;
+	MPU6050_Raw_factor.Accelerometer_X = MPU6050_Raw_factor.Accelerometer_X / 1000;
+	MPU6050_Raw_factor.Accelerometer_Y = MPU6050_Raw_factor.Accelerometer_Y / 1000;
+	MPU6050_Raw_factor.Accelerometer_Z = MPU6050_Raw_factor.Accelerometer_Z / 1000;
+	MPU6050_Raw_factor.Gyroscope_X = MPU6050_Raw_factor.Gyroscope_X / 1000;
+	MPU6050_Raw_factor.Gyroscope_Y = MPU6050_Raw_factor.Gyroscope_Y / 1000;
+	MPU6050_Raw_factor.Gyroscope_Z = MPU6050_Raw_factor.Gyroscope_Z / 1000;
+	// for (int i = 0; i < 1000; i++)
+	// {
+	// 	TM_MPU6050_ReadAll(&MPU6050_Raw);
+	// 				MPU6050_Data.Accelerometer_X = ((float)MPU6050_Raw.Accelerometer_X
+	// 				- MPU6050_Raw_factor.Accelerometer_X) / 16384;
+	// 				MPU6050_Data.Accelerometer_Y = ((float)MPU6050_Raw.Accelerometer_Y
+	// 				- MPU6050_Raw_factor.Accelerometer_Y) / 16384;
+	// 				MPU6050_Data.Accelerometer_Z = ((float)MPU6050_Raw.Accelerometer_Z
+	// 				- MPU6050_Raw_factor.Accelerometer_Z) / 16384;
+	// 				MPU6050_Data.Gyroscope_X = ((float)MPU6050_Raw.Gyroscope_X
+	// 				- MPU6050_Raw_factor.Gyroscope_X) / 131 / TIIME_FACTOR;
+	// 				MPU6050_Data.Gyroscope_Y = ((float)MPU6050_Raw.Gyroscope_Y
+	// 				- MPU6050_Raw_factor.Gyroscope_Y) / 131 / TIIME_FACTOR;
+	// 				MPU6050_Data.Gyroscope_Z = ((float)MPU6050_Raw.Gyroscope_Z
+	// 				- MPU6050_Raw_factor.Gyroscope_Z) / 131 / TIIME_FACTOR;
+	// 				MadgwickAHRSupdateIMU(MPU6050_Data.Gyroscope_X, MPU6050_Data.Gyroscope_Y,
+	// 				MPU6050_Data.Gyroscope_Z, MPU6050_Data.Accelerometer_X,
+	// 				MPU6050_Data.Accelerometer_Y, MPU6050_Data.Accelerometer_Z);
+	// }
 
 	for(int i = 0; i < 1000000; i++);
-    USARTSendDMA("Hello.\r\nUSART1 is ready.\r\n");
+    USARTSendDMA("INIT_SUCCESS\r\n");
     for(int i = 0; i < 1000000; i++);
+    state = 1;
     cycle();
 	while(1)
 	{
@@ -143,25 +177,34 @@ void cycle()
 		    	}
 		if (I2C_FLAG_READ == 1)
 		{
-			 TM_MPU6050_ReadAll(&MPU6050_Raw);
-			 MPU6050_Data.Accelerometer_X = ((float)MPU6050_Raw.Accelerometer_X - MPU6050_Raw_factor.Accelerometer_X) / 16384;
-			 MPU6050_Data.Accelerometer_Y = ((float)MPU6050_Raw.Accelerometer_Y - MPU6050_Raw_factor.Accelerometer_Y) / 16384;
-			 MPU6050_Data.Accelerometer_Z = ((float)MPU6050_Raw.Accelerometer_Z - MPU6050_Raw_factor.Accelerometer_Z) / 16384;
-			 MPU6050_Data.Gyroscope_X += ((float)MPU6050_Raw.Gyroscope_X - MPU6050_Raw_factor.Gyroscope_X) / 131 / 10 ;
-			 MPU6050_Data.Gyroscope_Y += ((float)MPU6050_Raw.Gyroscope_Y - MPU6050_Raw_factor.Gyroscope_Y) / 131 / 10;
-			 MPU6050_Data.Gyroscope_Z += ((float)MPU6050_Raw.Gyroscope_Z - MPU6050_Raw_factor.Gyroscope_Z) / 131 / 10;
-			 I2C_FLAG_READ = 0;
-			 GPIOB->ODR ^= GPIO_Pin_12;
-			 sprintf(str, "A\G X:%f Y:%f \r\n",
-					    			                    MPU6050_Data.Accelerometer_X,
-					    			                    MPU6050_Data.Accelerometer_Y,
-					    			                    MPU6050_Data.Accelerometer_Z,
-					    			                    MPU6050_Data.Gyroscope_X,
-					    			                    MPU6050_Data.Gyroscope_Y,
-					    			                    MPU6050_Data.Gyroscope_Z
-					    			                );
-					    			 USARTSendDMA(str);
+			TM_MPU6050_ReadAll(&MPU6050_Raw);
+			MPU6050_Data.Accelerometer_X = ((float)MPU6050_Raw.Accelerometer_X
+			- MPU6050_Raw_factor.Accelerometer_X) / 16384;
+			MPU6050_Data.Accelerometer_Y = ((float)MPU6050_Raw.Accelerometer_Y
+			- MPU6050_Raw_factor.Accelerometer_Y) / 16384;
+			MPU6050_Data.Accelerometer_Z = ((float)MPU6050_Raw.Accelerometer_Z
+			- MPU6050_Raw_factor.Accelerometer_Z) / 16384;
+			MPU6050_Data.Gyroscope_X = ((float)MPU6050_Raw.Gyroscope_X
+			- MPU6050_Raw_factor.Gyroscope_X) / 131 / TIIME_FACTOR;
+			MPU6050_Data.Gyroscope_Y = ((float)MPU6050_Raw.Gyroscope_Y
+			- MPU6050_Raw_factor.Gyroscope_Y) / 131 / TIIME_FACTOR;
+			MPU6050_Data.Gyroscope_Z = ((float)MPU6050_Raw.Gyroscope_Z
+			- MPU6050_Raw_factor.Gyroscope_Z) / 131 / TIIME_FACTOR;
+			MahonyAHRSupdateIMU(MPU6050_Data.Gyroscope_X, MPU6050_Data.Gyroscope_Y,
+			MPU6050_Data.Gyroscope_Z, MPU6050_Data.Accelerometer_X,
+			MPU6050_Data.Accelerometer_Y, MPU6050_Data.Accelerometer_Z);
+			I2C_FLAG_READ = 0;
+			timer++;
+			if (timer >= TIMER_DEF)
+			{
+				GPIOB->ODR ^= GPIO_Pin_12;
+				sprintf(str, "Guaternions 1:%f 2:%f 3:%f 4:%f\r\n", q0, q1, q2, q3);
+				USARTSendDMA(str);
+				//GPIOB->ODR ^= GPIO_Pin_12;
+				timer = 0;
+			}
 		}
+
 
 	}
 }
@@ -354,7 +397,7 @@ void tim4_init()
 	 TIM_TimeBaseStructInit(&TIMER_InitStructure);
 	 TIMER_InitStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	 TIMER_InitStructure.TIM_Prescaler = 7200;
-	 TIMER_InitStructure.TIM_Period = 1000;
+	 TIMER_InitStructure.TIM_Period = 10000/TIIME_FACTOR;
 	 TIM_TimeBaseInit(TIM4, &TIMER_InitStructure);
 	 TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
 	 TIM_Cmd(TIM4, ENABLE);
@@ -392,10 +435,13 @@ void USART1_IRQHandler(void)
 
 void TIM4_IRQHandler(void)
 {
-        if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET)
+        if ((TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET))
         {
             TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
-            I2C_FLAG_READ = 1;
+//            if (state)
+//            {
+            	I2C_FLAG_READ = 1;
+//            }
         }
 }
 
@@ -451,5 +497,3 @@ uint8_t I2C_Rx (I2C_TypeDef* I2Cx)
 	data = I2C_ReceiveData(I2Cx);
 	return data;
 }
-
-

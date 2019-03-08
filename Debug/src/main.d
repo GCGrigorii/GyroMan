@@ -35,7 +35,7 @@ src/main.o: ../src/main.c \
  /home/grigorii/Dev/GyroMan/inc/tm_stm32f4_mpu6050.h \
  /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_gpio.h \
  /home/grigorii/Dev/GyroMan/inc/tm_stm32f4_i2c.h \
- /home/grigorii/Dev/GyroMan/inc/defines.h
+ /home/grigorii/Dev/GyroMan/inc/defines.h ../src/../inc/MahonyAHRS.h
 
 /home/grigorii/Dev/GyroMan/CMSIS/device/stm32f10x.h:
 
@@ -110,3 +110,5 @@ src/main.o: ../src/main.c \
 /home/grigorii/Dev/GyroMan/inc/tm_stm32f4_i2c.h:
 
 /home/grigorii/Dev/GyroMan/inc/defines.h:
+
+../src/../inc/MahonyAHRS.h:

@@ -7,21 +7,21 @@
  * @ide     Keil uVision
  * @license GNU GPL v3
  * @brief   MPU6050 library for STM32F4xx
- *	
+ *
 @verbatim
    ----------------------------------------------------------------------
     Copyright (C) Tilen Majerle, 2015
-    
+
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     any later version.
-     
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
    ----------------------------------------------------------------------
@@ -46,10 +46,10 @@ extern "C" {
  * @{
  *
  * \par Default pinout
- * 
+ *
 @verbatim
 MPU6050		STM32F4xx	Descrption
- 
+
 SCL			PA8			Clock line for I2C
 SDA			PC9			Data line for I2C
 VCC			3.3V
@@ -156,7 +156,7 @@ AD0			-			If pin is low, I2C address is 0xD0, if pin is high, the address is 0xD
 /**
  * @}
  */
- 
+
 /**
  * @defgroup TM_MPU6050_Typedefs
  * @brief    Library Typedefs
@@ -173,7 +173,7 @@ typedef enum {
 } TM_MPU6050_Device_t;
 
 /**
- * @brief  MPU6050 result enumeration	
+ * @brief  MPU6050 result enumeration
  */
 typedef enum {
 	TM_MPU6050_Result_Ok = 0x00,          /*!< Everything OK */
@@ -246,7 +246,7 @@ typedef struct {
  *          This feature allows you to use 2 different sensors on the same board with same library.
  *          If you set AD0 pin to low, then this parameter should be TM_MPU6050_Device_0,
  *          but if AD0 pin is high, then you should use TM_MPU6050_Device_1
- *          
+ *
  *          Parameter can be a value of @ref TM_MPU6050_Device_t enumeration
  * @param  AccelerometerSensitivity: Set accelerometer sensitivity. This parameter can be a value of @ref TM_MPU6050_Accelerometer_t enumeration
  * @param  GyroscopeSensitivity: Set gyroscope sensitivity. This parameter can be a value of @ref TM_MPU6050_Gyroscope_t enumeration
@@ -295,11 +295,11 @@ TM_MPU6050_Result_t TM_MPU6050_ReadAll(TM_MPU6050_t* DataStruct);
 /**
  * @}
  */
- 
+
 /**
  * @}
  */
- 
+
 /**
  * @}
  */
