@@ -1,4 +1,4 @@
-src/i2c.o: ../src/i2c.c /home/grigorii/Dev/GyroMan/inc/i2c.h \
+src/initial.o: ../src/initial.c ../src/../inc/initial.h \
  /home/grigorii/Dev/GyroMan/CMSIS/device/stm32f10x.h \
  /home/grigorii/Dev/GyroMan/CMSIS/core/core_cm3.h \
  /home/grigorii/Dev/GyroMan/CMSIS/device/system_stm32f10x.h \
@@ -26,9 +26,13 @@ src/i2c.o: ../src/i2c.c /home/grigorii/Dev/GyroMan/inc/i2c.h \
  /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_usart.h \
  /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_wwdg.h \
  /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/misc.h \
- /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_i2c.h
+ /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_rcc.h \
+ /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_usart.h \
+ /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_dma.h \
+ /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_i2c.h \
+ /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_tim.h
 
-/home/grigorii/Dev/GyroMan/inc/i2c.h:
+../src/../inc/initial.h:
 
 /home/grigorii/Dev/GyroMan/CMSIS/device/stm32f10x.h:
 
@@ -84,4 +88,12 @@ src/i2c.o: ../src/i2c.c /home/grigorii/Dev/GyroMan/inc/i2c.h \
 
 /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/misc.h:
 
+/home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_rcc.h:
+
+/home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_usart.h:
+
+/home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_dma.h:
+
 /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_i2c.h:
+
+/home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_tim.h:

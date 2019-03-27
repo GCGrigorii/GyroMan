@@ -120,9 +120,6 @@ I2C3   |PA8   PC9    |PH7   PH8    |-     -
  */
 #include "stm32f10x.h"
 #include "stm32f10x_i2c.h"
-//#include "attributes.h"
-#include "defines.h"
-//#include "tm_stm32f1_gpio.h"
 
 /**
  * @defgroup TM_I2C_Macros

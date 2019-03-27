@@ -27,8 +27,7 @@ src/tm_stm32f4_i2c.o: ../src/tm_stm32f4_i2c.c \
  /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_usart.h \
  /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_wwdg.h \
  /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/misc.h \
- /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_i2c.h \
- /home/grigorii/Dev/GyroMan/inc/defines.h
+ /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_i2c.h
 
 /home/grigorii/Dev/GyroMan/inc/tm_stm32f4_i2c.h:
 
@@ -87,5 +86,3 @@ src/tm_stm32f4_i2c.o: ../src/tm_stm32f4_i2c.c \
 /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/misc.h:
 
 /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_i2c.h:
-
-/home/grigorii/Dev/GyroMan/inc/defines.h:

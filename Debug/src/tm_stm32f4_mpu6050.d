@@ -30,8 +30,7 @@ src/tm_stm32f4_mpu6050.o: ../src/tm_stm32f4_mpu6050.c \
  /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_rcc.h \
  /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_gpio.h \
  /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_i2c.h \
- /home/grigorii/Dev/GyroMan/inc/tm_stm32f4_i2c.h \
- /home/grigorii/Dev/GyroMan/inc/defines.h
+ /home/grigorii/Dev/GyroMan/inc/tm_stm32f4_i2c.h
 
 /home/grigorii/Dev/GyroMan/inc/tm_stm32f4_mpu6050.h:
 
@@ -96,5 +95,3 @@ src/tm_stm32f4_mpu6050.o: ../src/tm_stm32f4_mpu6050.c \
 /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_i2c.h:
 
 /home/grigorii/Dev/GyroMan/inc/tm_stm32f4_i2c.h:
-
-/home/grigorii/Dev/GyroMan/inc/defines.h:

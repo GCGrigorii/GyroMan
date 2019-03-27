@@ -50,7 +50,7 @@ all: GyroMan.elf
 GyroMan.elf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU G++ Linker'
-	arm-none-eabi-g++ -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -u _printf_float -T"/home/grigorii/Dev/GyroMan/LinkerScript.ld" -Wl,-Map=output.map -Wl,--gc-sections -fno-exceptions -fno-rtti -o "GyroMan.elf" @"objects.list" $(USER_OBJS) $(LIBS) -lm
+	arm-none-eabi-g++ -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -u _printf_float -specs=nano.specs -specs=nosys.specs -T"/home/grigorii/Dev/GyroMan/LinkerScript.ld" -Wl,-Map=output.map -Wl,--gc-sections -fno-exceptions -fno-rtti -o "GyroMan.elf" @"objects.list" $(USER_OBJS) $(LIBS) -lm
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
