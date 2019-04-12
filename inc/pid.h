@@ -11,7 +11,7 @@
  *  How often PID control function (pid_Controller) will be called.
  *  Important setting dependent on timer implementation in your program.
  */
-#define SAMPLE_TIME 10e-3
+#define SAMPLE_TIME 0.0001F
 
 /** Parameters for initializing */
 #define INITIAL_INTEGRAL_TERM 0
@@ -21,4 +21,4 @@
 void pid_Init(double p_factor, double i_factor, double d_factor);
 void pid_setParams(double Kp, double Ki, double Kd);
 void pid_setOutputLimits(int16_t Min, int16_t Max);
-double pid_Controller(int16_t setPoint, int16_t processValue);
+double pid_Controller(double setPoint, double processValue);

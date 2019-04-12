@@ -90,7 +90,7 @@ void uart_init() {
 		NVIC_InitTypeDef NVIC_InitStructure;
 		/* Enable the USARTx Interrupt */
 		NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
 		NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 		NVIC_Init(&NVIC_InitStructure);
@@ -204,23 +204,39 @@ void tim3_init() {
 	 TIMER_InitStructure.TIM_Period = 10000 / PWM_FACTOR;
 	 TIMER_InitStructure.TIM_RepetitionCounter = 0;
 	 TIM_TimeBaseInit(TIM3, &TIMER_InitStructure);
-	 //PWM 1
+	 //PWM CHANEL 1
 	 TIM_OCStructInit(&timerPWM1);
 	 timerPWM1.TIM_Pulse = 0; //0x1000;
 	 timerPWM1.TIM_OCMode = TIM_OCMode_PWM1;
 	 timerPWM1.TIM_OutputState = TIM_OutputState_Enable;
 	 timerPWM1.TIM_OCPolarity = TIM_OCPolarity_High;
 	 TIM_OC1Init(TIM3, &timerPWM1);
-	 //PWM 2
+	 //PWM CHANEL 2
 	 TIM_OCStructInit(&timerPWM2);
 	 timerPWM2.TIM_Pulse = 0; //0x1000;
 	 timerPWM2.TIM_OCMode = TIM_OCMode_PWM1;
 	 timerPWM2.TIM_OutputState = TIM_OutputState_Enable;
 	 timerPWM2.TIM_OCPolarity = TIM_OCPolarity_High;
 	 TIM_OC2Init(TIM3, &timerPWM2);
+	 //PWM CHANEL 3
+	 TIM_OCStructInit(&timerPWM2);
+	 timerPWM2.TIM_Pulse = 0; //0x1000;
+	 timerPWM2.TIM_OCMode = TIM_OCMode_PWM1;
+	 timerPWM2.TIM_OutputState = TIM_OutputState_Enable;
+	 timerPWM2.TIM_OCPolarity = TIM_OCPolarity_High;
+	 TIM_OC2Init(TIM3, &timerPWM3);
+	 //PWM CHANEL 4
+	 TIM_OCStructInit(&timerPWM2);
+	 timerPWM2.TIM_Pulse = 0; //0x1000;
+	 timerPWM2.TIM_OCMode = TIM_OCMode_PWM1;
+	 timerPWM2.TIM_OutputState = TIM_OutputState_Enable;
+	 timerPWM2.TIM_OCPolarity = TIM_OCPolarity_High;
+	 TIM_OC2Init(TIM3, &timerPWM4);
 
 	 TIM_Cmd(TIM3, ENABLE);
 	 PWM1 = timerPWM1.TIM_Pulse;
 	 PWM2 = timerPWM2.TIM_Pulse;
+	 PWM3 = timerPWM3.TIM_Pulse;
+	 PWM4 = timerPWM4.TIM_Pulse;
 
 }

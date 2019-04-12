@@ -7,8 +7,8 @@
 
 /** Structure for storing PID data between calculations */
 typedef struct PID_DATA {
-  int16_t lastProcessValue;
-  int32_t integralTerm;
+  double lastProcessValue;
+  double integralTerm;
   double kp;
   double ki;
   double kd;
@@ -36,7 +36,7 @@ void pid_Init(double kp, double ki, double kd)
  * @param processValue - level obtained from the control object.
  * @returns input to control object.
  */
-double pid_Controller(int16_t setPoint, int16_t processValue)
+double pid_Controller(double setPoint, double processValue)
 {
   double error, p_term, d_term;
   double out;

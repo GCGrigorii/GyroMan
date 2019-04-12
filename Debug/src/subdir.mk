@@ -4,31 +4,31 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../src/MadgwickAHRS.c \
-../src/MahonyAHRS.c \
+../src/IMU.c \
 ../src/initial.c \
 ../src/main.c \
 ../src/pid.c \
 ../src/tm_stm32f4_i2c.c \
-../src/tm_stm32f4_mpu6050.c 
+../src/tm_stm32f4_mpu6050.c \
+../src/usart_cmd.c 
 
 OBJS += \
-./src/MadgwickAHRS.o \
-./src/MahonyAHRS.o \
+./src/IMU.o \
 ./src/initial.o \
 ./src/main.o \
 ./src/pid.o \
 ./src/tm_stm32f4_i2c.o \
-./src/tm_stm32f4_mpu6050.o 
+./src/tm_stm32f4_mpu6050.o \
+./src/usart_cmd.o 
 
 C_DEPS += \
-./src/MadgwickAHRS.d \
-./src/MahonyAHRS.d \
+./src/IMU.d \
 ./src/initial.d \
 ./src/main.d \
 ./src/pid.d \
 ./src/tm_stm32f4_i2c.d \
-./src/tm_stm32f4_mpu6050.d 
+./src/tm_stm32f4_mpu6050.d \
+./src/usart_cmd.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

@@ -15,7 +15,7 @@
 extern volatile char buffer[80];
 
 TIM_OCInitTypeDef timerPWM1, timerPWM2;
-uint16_t PWM1, PWM2;
+uint16_t PWM1, PWM2, PWM3, PWM4;
 
 char init_();
 void gpio_init();

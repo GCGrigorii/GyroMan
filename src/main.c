@@ -75,110 +75,52 @@ void cycle() {
 	while (1)
 	{
 		if (RX_FLAG_END_LINE == 1) {
+						char* search;
+						int outS;
 		    		// Reset END_LINE Flag
 		    		RX_FLAG_END_LINE = 0;
-
-		    		/* !!! This lines is not have effect. Just a last command USARTSendDMA(":\r\n"); !!!! */
-		    		//USARTSendDMA("\r\nI has received a line:\r\n"); // no effect
-		    		//USARTSendDMA(RX_BUF); // no effect
-		    		//USARTSendDMA(":\r\n"); // This command does not wait for the finish of the sending of buffer. It just write to buffer new information and restart sending via DMA.
-
-		    		if (strncmp(strupr(RX_BUF), "W", 1) == 0) {
-		    			PWM1 = PWM1 + 10;
-		    			PWM2 = 0;
-		    			TIM3->CCR1 = PWM1;
-		    			TIM3->CCR2 = PWM2;
-		    		}
-
-		    		if (strncmp(strupr(RX_BUF), "S", 1) == 0) {
-		    			PWM2 = PWM2 + 10;
-		    			PWM1 = 0;
-		    			TIM3->CCR1 = PWM1;
-		    			TIM3->CCR2 = PWM2;
-		    		}
-						if (strncmp(strupr(RX_BUF), "Q", 1) == 0) {
-		    			PWM1 = PWM1 - 10;
-		    			PWM2 = 0;
-		    			TIM3->CCR1 = PWM1;
-		    			TIM3->CCR2 = PWM2;
-		    		}
-
-		    		if (strncmp(strupr(RX_BUF), "A", 1) == 0) {
-		    			PWM2 = PWM2 - 10;
-		    			PWM1 = 0;
-		    			TIM3->CCR1 = PWM1;
-		    			TIM3->CCR2 = PWM2;
-		    		}
-		    		if (strncmp(strupr(RX_BUF), "C", 1) == 0) {
-		    			PWM1 = 0;
-		    			PWM2 = 0;
-		    			TIM3->CCR1 = PWM1;
-		    			TIM3->CCR2 = PWM2;
-		    		}
-
-		    		if (strncmp(strupr(RX_BUF), "DATA\r", 5) == 0)
-		    		{
-		    			USARTSendDMA("THIS IS A COMMAND \"DATA\"!!!\r\n");
-		    			 sprintf(str, "Accelerometer X:%f Y:%f Z:%f Gyroscope X:%f Y:%f Z:%f\r\n",
-		    			                    MPU6050_Data.Accelerometer_X,
-		    			                    MPU6050_Data.Accelerometer_Y,
-		    			                    MPU6050_Data.Accelerometer_Z,
-		    			                    MPU6050_Data.Gyroscope_X,
-		    			                    MPU6050_Data.Gyroscope_Y,
-		    			                    MPU6050_Data.Gyroscope_Z
-		    			                );
-		    			 USARTSendDMA(str);
-		    		}
-
+						// CMD
+						sprintf(buffer_str, "\r\n");
+						if (UCMD.state == 0xff) {
+							switch (UCMD.fcn) {
+								case 1: GPIOB->ODR ^= GPIO_Pin_12; break;
+								case 5: pid_setParams(K_P, K_I, K_D); break;
+								case 6: sprintf(buffer_str, "Kp %f Ki %f Kd %f\r\n",
+								K_P, K_I, K_D); break;
+								case 7: K_P = 0; K_I = 0; K_D = 0; break;
+								default: break;
+							}
+						} else if (UCMD.state == 0x0f) {
+							switch (UCMD.fcn) {
+								case 2: K_P = atof(RX_BUF); break;
+								case 3: K_I = atof(RX_BUF); break;
+								case 4: K_D = atof(RX_BUF); break;
+								default: break;
+							}
+							strcat(buffer_str, buffer_str_t);
+							UCMD.state = 0xff;
+						}
+						USARTSendDMA(buffer_str);
+						usart_cmd(RX_BUF, RX_BUF_SIZE, &UCMD);
 		    		clear_RXBuffer();
+						// CMD end
 		    	}
 		if (I2C_FLAG_READ == 1)
 		{
-			float ay,gx;
-			TM_MPU6050_ReadAll(&MPU6050_Raw);
-			MPU6050_Data.Accelerometer_X = ((float)MPU6050_Raw.Accelerometer_X
-			- MPU6050_Raw_factor.Accelerometer_X) / 16384;
-			ay = ((float)MPU6050_Raw.Accelerometer_Y
-			- MPU6050_Raw_factor.Accelerometer_Y) / 16384;
-			MPU6050_Data.Accelerometer_Z = ((float)MPU6050_Raw.Accelerometer_Z
-			- MPU6050_Raw_factor.Accelerometer_Z) / 16384;
-			gx = ((float)MPU6050_Raw.Gyroscope_X
-			- MPU6050_Raw_factor.Gyroscope_X) / 131; // TIIME_FACTOR;
-			MPU6050_Data.Gyroscope_Y = ((float)MPU6050_Raw.Gyroscope_Y
-			- MPU6050_Raw_factor.Gyroscope_Y) / 131; // TIIME_FACTOR;
-			MPU6050_Data.Gyroscope_Z = ((float)MPU6050_Raw.Gyroscope_Z
-			- MPU6050_Raw_factor.Gyroscope_Z) / 131; // TIIME_FACTOR;
-			// MadgwickAHRSupdateIMU(MPU6050_Data.Gyroscope_X, MPU6050_Data.Gyroscope_Y,
-			// MPU6050_Data.Gyroscope_Z, MPU6050_Data.Accelerometer_X,
-			// MPU6050_Data.Accelerometer_Y, MPU6050_Data.Accelerometer_Z);
-			// toEulerAngle();
-			ay = clamp(ay, -1.0, 1.0);
-			angle_ax = 90 - TO_DEG*acos(ay);
-			angle_gx = angle_gx + gx*10/1000.0; // 10 - every 10 ms calculate
-			angle_gx = angle_gx*(1-FK) + angle_ax * FK;
 			//PID
-			if (angle_gx > 0) {
-				measurementValue = 300 - angle_gx * 10;
-				PID_out = pid_Controller(300, measurementValue);
-				PWM2 = 0;
-				PWM1 = PID_out / 10;
-			} else {
-				measurementValue = 300 - angle_gx * (-10);
-				PID_out = pid_Controller(300, measurementValue);
-				PWM1 = 0;
-				PWM2 = PID_out / 10;
-			}
-			TIM3->CCR1 = PWM1;
-			TIM3->CCR2 = PWM2;
+
 
 			I2C_FLAG_READ = 0;
 			timer++;
-			if (timer >= TIMER_DEF)
+			if ((timer >= TIMER_DEF) & (!UCMD.state))
 			{
 				GPIOB->ODR ^= GPIO_Pin_12;
 				//toEulerAngle();
-				sprintf(str, "AGX %f PWM1 %u PWM2 %u mesv %i\r\n", angle_gx, PWM1, PWM2, measurementValue);
-				USARTSendDMA(str);
+				sprintf(buffer_str, "AGX %f PWM1 %u PWM2 %u mesv %f P %f\r\n", angle_gx,
+				PWM1, PWM2, measurementValue, PID_out);
+				// sprintf(buffer_str, "Y %f P %f R %f q0 %f q1 %f q2 %f q3 %f gx %f gy %f gz %f\r\n",
+				// yaw, pitch, roll, q0, q1, q2, q3, MPU6050_Data.Gyroscope_X, MPU6050_Data.Gyroscope_Y, MPU6050_Data.Gyroscope_Z );
+				USARTSendDMA(buffer_str);
 				//GPIOB->ODR ^= GPIO_Pin_12;
 				timer = 0;
 			}
@@ -215,10 +157,50 @@ void TIM4_IRQHandler(void) {
         if ((TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET))
         {
             TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
-//            if (state)
-//            {
+						if (state == 1)
+						{
+							double ay, az, ax, gx;
             	I2C_FLAG_READ = 1;
-//            }
+							TM_MPU6050_ReadAll(&MPU6050_Raw);
+							MPU6050_Data.Accelerometer_X = ((float)MPU6050_Raw.Accelerometer_X
+							- MPU6050_Raw_factor.Accelerometer_X) / 8192;
+							MPU6050_Data.Accelerometer_Y  = ((float)MPU6050_Raw.Accelerometer_Y
+							- MPU6050_Raw_factor.Accelerometer_Y) / 8192;
+							MPU6050_Data.Accelerometer_Z = ((float)MPU6050_Raw.Accelerometer_Z
+							- MPU6050_Raw_factor.Accelerometer_Z) / 8192;
+							gx = ((float)MPU6050_Raw.Gyroscope_X
+							- MPU6050_Raw_factor.Gyroscope_X) / 131; // TIIME_FACTOR;
+							MPU6050_Data.Gyroscope_Y = ((float)MPU6050_Raw.Gyroscope_Y
+							- MPU6050_Raw_factor.Gyroscope_Y) / 131; // TIIME_FACTOR;
+							MPU6050_Data.Gyroscope_Z = ((float)MPU6050_Raw.Gyroscope_Z
+							- MPU6050_Raw_factor.Gyroscope_Z) / 131; // TIIME_FACTOR;
+							// IMUupdate(MPU6050_Data.Gyroscope_X, MPU6050_Data.Gyroscope_Y,
+							// MPU6050_Data.Gyroscope_Z, MPU6050_Data.Accelerometer_X,
+							// MPU6050_Data.Accelerometer_Y, MPU6050_Data.Accelerometer_Z);
+
+							// toEulerAngle();
+							ay = clamp(MPU6050_Data.Accelerometer_Y, -1.0, 1.0);
+							az = clamp(MPU6050_Data.Accelerometer_Z, -1.0, 1.0);
+							ax = clamp(MPU6050_Data.Accelerometer_X, -1.0, 1.0);
+							angle_ax = 90 - TO_DEG*atan(ay/sqrt(ax * ax + az * az)) / 2;
+							angle_gx = angle_gx + gx * 0.01; // 10 - every 10 ms calculate
+							angle_gx = angle_gx *(1-FK) + angle_ax * FK;
+							last_ay = ay;
+							//angle_gx = MPU6050_Data.Gyroscope_Z;
+							if (angle_gx > 0) {
+								measurementValue = angle_gx;
+								PID_out = pid_Controller(0, measurementValue);
+								PWM2 = 0;
+								PWM1 = PID_out;
+							} else {
+								measurementValue = angle_gx * (-1);
+								PID_out = pid_Controller(0, measurementValue);
+								PWM1 = 0;
+								PWM2 = PID_out;
+							}
+							TIM3->CCR1 = PWM1;
+							TIM3->CCR2 = PWM2;
+            }
         }
 }
 
@@ -241,23 +223,11 @@ void clear_RXBuffer(void) {
 	RXi = 0;
 }
 
-void toEulerAngle() {
-	// roll (x-axis rotation)
-	double sinr_cosp = +2.0 * (q0 * q1 + q2 * q3);
-	double cosr_cosp = +1.0 - 2.0 * (q1 * q1 + q2 * q2);
-	roll = atan2(sinr_cosp, cosr_cosp);
-
-	// pitch (y-axis rotation)
-	double sinp = +2.0 * (q0 * q2 - q3 * q1);
-	if (fabs(sinp) >= 1)
-		pitch = copysign(M_PI / 2, sinp); // use 90 degrees if out of range
-	else
-		pitch = asin(sinp);
-
-	// yaw (z-axis rotation)
-	double siny_cosp = +2.0 * (q0 * q3 + q1 * q2);
-	double cosy_cosp = +1.0 - 2.0 * (q2 * q2 + q3 * q3);
-	yaw = atan2(siny_cosp, cosy_cosp);
+void toEulerAngle(qw, qx, qy, qz)
+{
+	yaw = pow(tan((2 * ((q1 * q2) + (q0 * q3)))/(q0*q0 - q3*q3 - q2*q2 - q1*q1)), -1) * TO_DEG;
+	pitch = pow(sin(-2*(q1*q3 - q2*q0)), -1) * TO_DEG;
+	roll = pow(tan((2*(q2*q3+q1*q0))/(q0*q0 + q3*q3 + q2*q2 +q1*q1)), -1) * TO_DEG;
 }
 
 float clamp(float v, float minv, float maxv){
@@ -266,20 +236,4 @@ float clamp(float v, float minv, float maxv){
     else if( v<minv )
         return minv;
     return v;
-}
-
-void pwmREG(uint8_t step, uint8_t direction) {
-
-	if (direction > 0) {
-		if (PWM1 < 0xffff)
-			PWM1 = PWM1 + step;
-		if (PWM2 > 0)
-			PWM2 = PWM2 - step;
-	}
-	else {
-		if (PWM2 < 0xffff)
-			PWM2 = PWM2 + step;
-		if (PWM1 > 0)
-			PWM1 = PWM1 - step;
-	}
 }
