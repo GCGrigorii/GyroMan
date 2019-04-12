@@ -12,9 +12,9 @@
 #define TIIME_FACTOR 100
 #define PWM_FACTOR 100
 
-extern volatile char buffer[80];
+extern volatile char buffer[80]; // memory for USART DMA 
 
-TIM_OCInitTypeDef timerPWM1, timerPWM2;
+TIM_OCInitTypeDef timerPWM1, timerPWM2, timerPWM3, timerPWM4;
 uint16_t PWM1, PWM2, PWM3, PWM4;
 
 char init_();

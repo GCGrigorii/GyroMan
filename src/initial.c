@@ -5,7 +5,7 @@ volatile char buffer[80] = {'\0'};
 char init_() {
 	rcc_init();
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1 |
-			RCC_APB1Periph_TIM4 | RCC_APB1Periph_TIM3, ENABLE);
+			RCC_APB1Periph_TIM4 | RCC_APB1Periph_TIM3 | RCC_APB1Periph_USART2, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC |
 				RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB |
 				RCC_APB2Periph_USART1 , ENABLE);
@@ -91,24 +91,37 @@ void uart_init() {
 		/* Enable the USARTx Interrupt */
 		NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
 		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+		NVIC_Init(&NVIC_InitStructure);
+		/* Enable the USARTx Interrupt */
+		NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
+		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
 		NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 		NVIC_Init(&NVIC_InitStructure);
 
 		/* Configure the GPIOs */
 		GPIO_InitTypeDef GPIO_InitStructure;
-
 		/* Configure USART1 Tx (PA.09) as alternate function push-pull */
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
 		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 		GPIO_Init(GPIOA, &GPIO_InitStructure);
-
 		/* Configure USART1 Rx (PA.10) as input floating */
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 		GPIO_Init(GPIOA, &GPIO_InitStructure);
 
+		/* Configure USART2 Tx (PA.09) as alternate function push-pull */
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+		GPIO_Init(GPIOA, &GPIO_InitStructure);
+		/* Configure USART2 Rx (PA.10) as input floating */
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+		GPIO_Init(GPIOA, &GPIO_InitStructure);
 		/* Configure the USART1 */
 		USART_InitTypeDef USART_InitStructure;
 
@@ -126,17 +139,28 @@ void uart_init() {
 			- USART LastBit: The clock pulse of the last data bit is not output to
 				the SCLK pin
 		 */
-		USART_InitStructure.USART_BaudRate = 115200;
+		USART_InitStructure.USART_BaudRate = 38400;
 		USART_InitStructure.USART_WordLength = USART_WordLength_8b;
 		USART_InitStructure.USART_StopBits = USART_StopBits_1;
 		USART_InitStructure.USART_Parity = USART_Parity_No;
 		USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 		USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-
 		USART_Init(USART1, &USART_InitStructure);
+
+		USART_InitTypeDef USART_InitStructure2;
+		/* Configure the USART2 */
+		USART_InitStructure2.USART_BaudRate = 38400;
+		USART_InitStructure2.USART_WordLength = USART_WordLength_8b;
+		USART_InitStructure2.USART_StopBits = USART_StopBits_1;
+		USART_InitStructure2.USART_Parity = USART_Parity_No;
+		USART_InitStructure2.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+		USART_InitStructure2.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+		USART_Init(USART2, &USART_InitStructure2);
 
 		/* Enable USART1 */
 		USART_Cmd(USART1, ENABLE);
+		/* Enable USART1 */
+		USART_Cmd(USART2, ENABLE);
 
 		USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
 		//DMA_Cmd(DMA1_Channel4, ENABLE);
@@ -148,6 +172,9 @@ void uart_init() {
 		/* Enable the USART1 Receive interrupt: this interrupt is generated when the
 		USART1 receive data register is not empty */
 		USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+		/* Enable the USART2 Receive interrupt: this interrupt is generated when the
+		USART1 receive data register is not empty */
+		USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
 }
 
 void i2c_init() {

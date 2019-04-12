@@ -36,8 +36,7 @@ src/main.o: ../src/main.c /home/grigorii/Dev/GyroMan/inc/main.h \
  /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_usart.h \
  /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_dma.h \
  /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_tim.h \
- /home/grigorii/Dev/GyroMan/inc/../inc/usart_cmd.h \
- /home/grigorii/Dev/GyroMan/inc/../inc/IMU.h
+ /home/grigorii/Dev/GyroMan/inc/../inc/usart_cmd.h
 
 /home/grigorii/Dev/GyroMan/inc/main.h:
 
@@ -116,5 +115,3 @@ src/main.o: ../src/main.c /home/grigorii/Dev/GyroMan/inc/main.h \
 /home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc/stm32f10x_tim.h:
 
 /home/grigorii/Dev/GyroMan/inc/../inc/usart_cmd.h:
-
-/home/grigorii/Dev/GyroMan/inc/../inc/IMU.h:

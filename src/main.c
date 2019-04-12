@@ -20,41 +20,40 @@ int main(void) {
 
 	for(int i = 0; i < 1000000; i++);
 	USARTSendDMA("INIT_START\r\n");
-	sensor1 = TM_MPU6050_Init(&MPU6050_Raw, TM_MPU6050_Device_0,
-		TM_MPU6050_Accelerometer_4G, TM_MPU6050_Gyroscope_500s);
+	// sensor1 = TM_MPU6050_Init(&MPU6050_Raw, TM_MPU6050_Device_0,
+	// 	TM_MPU6050_Accelerometer_4G, TM_MPU6050_Gyroscope_500s);
 	for(int i = 0; i < 1000000; i++);
-	if (sensor1 == TM_MPU6050_Result_Ok) {
-	        /* Display message to user */
-		USARTSendDMA("MPU6050_INITED\r\n");
-
-	        /* Sensor 1 OK */
-	        sensor1 = 1;
-	    }
-	else
-	{
-		strcmp(buffer, itoa(sensor1));
-		strcmp(buffer, " - MPU6050_INIT_ERROR\r\n");
-		USARTSendDMA(buffer);
-		while(1);
-	}
+	// if (sensor1 == TM_MPU6050_Result_Ok) {
+	//         /* Display message to user */
+	// USARTSendDMA("MPU6050_INITED\r\n");
+       // /* Sensor 1 OK */
+	//         sensor1 = 1;
+	//     }
+	// else
+	// {
+	// 	strcmp(buffer, itoa(sensor1));
+	// 	strcmp(buffer, " - MPU6050_INIT_ERROR\r\n");
+	// 	USARTSendDMA(buffer);
+	// 	while(1);
+	// }
 	for(int i = 0; i < 1000000; i++);
 
-	for (int i = 0; i < 1000; i++ )
-	{
-		TM_MPU6050_ReadAll(&MPU6050_Raw);
-		MPU6050_Raw_factor.Accelerometer_X += (float)MPU6050_Raw.Accelerometer_X;
-		MPU6050_Raw_factor.Accelerometer_Y += (float)MPU6050_Raw.Accelerometer_Y;
-		MPU6050_Raw_factor.Accelerometer_Z += (float)MPU6050_Raw.Accelerometer_Z;
-		MPU6050_Raw_factor.Gyroscope_X += (float)MPU6050_Raw.Gyroscope_X;
-		MPU6050_Raw_factor.Gyroscope_Y += (float)MPU6050_Raw.Gyroscope_Y;
-		MPU6050_Raw_factor.Gyroscope_Z += (float)MPU6050_Raw.Gyroscope_Z;
-	}
-	MPU6050_Raw_factor.Accelerometer_X = MPU6050_Raw_factor.Accelerometer_X / 1000;
-	MPU6050_Raw_factor.Accelerometer_Y = MPU6050_Raw_factor.Accelerometer_Y / 1000;
-	MPU6050_Raw_factor.Accelerometer_Z = MPU6050_Raw_factor.Accelerometer_Z / 1000;
-	MPU6050_Raw_factor.Gyroscope_X = MPU6050_Raw_factor.Gyroscope_X / 1000;
-	MPU6050_Raw_factor.Gyroscope_Y = MPU6050_Raw_factor.Gyroscope_Y / 1000;
-	MPU6050_Raw_factor.Gyroscope_Z = MPU6050_Raw_factor.Gyroscope_Z / 1000;
+	// for (int i = 0; i < 1000; i++ )
+	// {
+	// 	TM_MPU6050_ReadAll(&MPU6050_Raw);
+	// 	MPU6050_Raw_factor.Accelerometer_X += (float)MPU6050_Raw.Accelerometer_X;
+	// 	MPU6050_Raw_factor.Accelerometer_Y += (float)MPU6050_Raw.Accelerometer_Y;
+	// 	MPU6050_Raw_factor.Accelerometer_Z += (float)MPU6050_Raw.Accelerometer_Z;
+	// 	MPU6050_Raw_factor.Gyroscope_X += (float)MPU6050_Raw.Gyroscope_X;
+	// 	MPU6050_Raw_factor.Gyroscope_Y += (float)MPU6050_Raw.Gyroscope_Y;
+	// 	MPU6050_Raw_factor.Gyroscope_Z += (float)MPU6050_Raw.Gyroscope_Z;
+	// }
+	// MPU6050_Raw_factor.Accelerometer_X = MPU6050_Raw_factor.Accelerometer_X / 1000;
+	// MPU6050_Raw_factor.Accelerometer_Y = MPU6050_Raw_factor.Accelerometer_Y / 1000;
+	// MPU6050_Raw_factor.Accelerometer_Z = MPU6050_Raw_factor.Accelerometer_Z / 1000;
+	// MPU6050_Raw_factor.Gyroscope_X = MPU6050_Raw_factor.Gyroscope_X / 1000;
+	// MPU6050_Raw_factor.Gyroscope_Y = MPU6050_Raw_factor.Gyroscope_Y / 1000;
+	// MPU6050_Raw_factor.Gyroscope_Z = MPU6050_Raw_factor.Gyroscope_Z / 1000;
 
 	pid_Init(K_P, K_I, K_D);
 
@@ -62,7 +61,7 @@ int main(void) {
     USARTSendDMA("INIT_SUCCESS\r\n");
     for(int i = 0; i < 1000000; i++);
     state = 1;
-    cycle();
+  cycle();
 
 	while(1)
 	{
@@ -74,6 +73,24 @@ int main(void) {
 void cycle() {
 	while (1)
 	{
+		if (RX_FLAG_READ_END)	{
+			RX_FLAG_READ_END = 0;
+			//sprintf(buffer_str, "MPU READED {");
+			qw = strtd(RX_BUF2, RX_BUF_SIZE, "w[", 2, ']');
+			qx = strtd(RX_BUF2, RX_BUF_SIZE, "x[", 2, ']');
+			qy = strtd(RX_BUF2, RX_BUF_SIZE, "y[", 2, ']');
+			qz = strtd(RX_BUF2, RX_BUF_SIZE, "z[", 2, ']');
+			//strcat(buffer_str, RX_BUF2);
+			sprintf(buffer_str, "MPU VAL wxyz[%f;%f;%f;%f]\n\r", qw, qx, qy, qz);
+			//strcat(buffer_str, buffer_str_t);
+			if (timer > TIMER_DEF){
+				USARTSendDMA(buffer_str);
+				timer = 0;
+			}
+			timer++;
+			clear_RXBuffer2();
+		}
+
 		if (RX_FLAG_END_LINE == 1) {
 						char* search;
 						int outS;
@@ -105,27 +122,6 @@ void cycle() {
 		    		clear_RXBuffer();
 						// CMD end
 		    	}
-		if (I2C_FLAG_READ == 1)
-		{
-			//PID
-
-
-			I2C_FLAG_READ = 0;
-			timer++;
-			if ((timer >= TIMER_DEF) & (!UCMD.state))
-			{
-				GPIOB->ODR ^= GPIO_Pin_12;
-				//toEulerAngle();
-				sprintf(buffer_str, "AGX %f PWM1 %u PWM2 %u mesv %f P %f\r\n", angle_gx,
-				PWM1, PWM2, measurementValue, PID_out);
-				// sprintf(buffer_str, "Y %f P %f R %f q0 %f q1 %f q2 %f q3 %f gx %f gy %f gz %f\r\n",
-				// yaw, pitch, roll, q0, q1, q2, q3, MPU6050_Data.Gyroscope_X, MPU6050_Data.Gyroscope_Y, MPU6050_Data.Gyroscope_Z );
-				USARTSendDMA(buffer_str);
-				//GPIOB->ODR ^= GPIO_Pin_12;
-				timer = 0;
-			}
-		}
-
 
 	}
 }
@@ -149,57 +145,79 @@ void USART1_IRQHandler(void) {
     		}
 
 			//Echo
-    		USART_SendData(USART1, RXc);
+    	USART_SendData(USART1, RXc);
 	}
 }
 
+void USART2_IRQHandler(void) {
+    if ((USART2->SR & USART_FLAG_RXNE) != (u16)RESET)
+	{
+    		RXc2 = USART_ReceiveData(USART2);
+    		RX_BUF2[RXi2] = RXc2;
+    		RXi2++;
+
+    		if ((RXc2 != 13)) {
+    			if (RXi2 > RX_BUF_SIZE-1) {
+    				clear_RXBuffer2();
+    			}
+    		}
+    		else {
+    			RX_FLAG_READ_END = 1;
+    		}
+
+			//Echo
+    	//USART_SendData(USART1, RXc2);
+	}
+}
 void TIM4_IRQHandler(void) {
         if ((TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET))
         {
             TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
 						if (state == 1)
 						{
-							double ay, az, ax, gx;
-            	I2C_FLAG_READ = 1;
-							TM_MPU6050_ReadAll(&MPU6050_Raw);
-							MPU6050_Data.Accelerometer_X = ((float)MPU6050_Raw.Accelerometer_X
-							- MPU6050_Raw_factor.Accelerometer_X) / 8192;
-							MPU6050_Data.Accelerometer_Y  = ((float)MPU6050_Raw.Accelerometer_Y
-							- MPU6050_Raw_factor.Accelerometer_Y) / 8192;
-							MPU6050_Data.Accelerometer_Z = ((float)MPU6050_Raw.Accelerometer_Z
-							- MPU6050_Raw_factor.Accelerometer_Z) / 8192;
-							gx = ((float)MPU6050_Raw.Gyroscope_X
-							- MPU6050_Raw_factor.Gyroscope_X) / 131; // TIIME_FACTOR;
-							MPU6050_Data.Gyroscope_Y = ((float)MPU6050_Raw.Gyroscope_Y
-							- MPU6050_Raw_factor.Gyroscope_Y) / 131; // TIIME_FACTOR;
-							MPU6050_Data.Gyroscope_Z = ((float)MPU6050_Raw.Gyroscope_Z
-							- MPU6050_Raw_factor.Gyroscope_Z) / 131; // TIIME_FACTOR;
+							// double ay, az, ax, gx;
+            	// I2C_FLAG_READ = 1;
+							// TM_MPU6050_ReadAll(&MPU6050_Raw);
+							// MPU6050_Data.Accelerometer_X = ((float)MPU6050_Raw.Accelerometer_X
+							// - MPU6050_Raw_factor.Accelerometer_X) / 8192;
+							// MPU6050_Data.Accelerometer_Y  = ((float)MPU6050_Raw.Accelerometer_Y
+							// - MPU6050_Raw_factor.Accelerometer_Y) / 8192;
+							// MPU6050_Data.Accelerometer_Z = ((float)MPU6050_Raw.Accelerometer_Z
+							// - MPU6050_Raw_factor.Accelerometer_Z) / 8192;
+							// gx = ((float)MPU6050_Raw.Gyroscope_X
+							// - MPU6050_Raw_factor.Gyroscope_X) / 131; // TIIME_FACTOR;
+							// MPU6050_Data.Gyroscope_Y = ((float)MPU6050_Raw.Gyroscope_Y
+							// - MPU6050_Raw_factor.Gyroscope_Y) / 131; // TIIME_FACTOR;
+							// MPU6050_Data.Gyroscope_Z = ((float)MPU6050_Raw.Gyroscope_Z
+							// - MPU6050_Raw_factor.Gyroscope_Z) / 131; // TIIME_FACTOR;
 							// IMUupdate(MPU6050_Data.Gyroscope_X, MPU6050_Data.Gyroscope_Y,
 							// MPU6050_Data.Gyroscope_Z, MPU6050_Data.Accelerometer_X,
 							// MPU6050_Data.Accelerometer_Y, MPU6050_Data.Accelerometer_Z);
 
-							// toEulerAngle();
-							ay = clamp(MPU6050_Data.Accelerometer_Y, -1.0, 1.0);
-							az = clamp(MPU6050_Data.Accelerometer_Z, -1.0, 1.0);
-							ax = clamp(MPU6050_Data.Accelerometer_X, -1.0, 1.0);
-							angle_ax = 90 - TO_DEG*atan(ay/sqrt(ax * ax + az * az)) / 2;
-							angle_gx = angle_gx + gx * 0.01; // 10 - every 10 ms calculate
-							angle_gx = angle_gx *(1-FK) + angle_ax * FK;
-							last_ay = ay;
-							//angle_gx = MPU6050_Data.Gyroscope_Z;
-							if (angle_gx > 0) {
-								measurementValue = angle_gx;
-								PID_out = pid_Controller(0, measurementValue);
-								PWM2 = 0;
-								PWM1 = PID_out;
-							} else {
-								measurementValue = angle_gx * (-1);
-								PID_out = pid_Controller(0, measurementValue);
-								PWM1 = 0;
-								PWM2 = PID_out;
-							}
+							// // toEulerAngle();
+							// ay = clamp(MPU6050_Data.Accelerometer_Y, -1.0, 1.0);
+							// az = clamp(MPU6050_Data.Accelerometer_Z, -1.0, 1.0);
+							// ax = clamp(MPU6050_Data.Accelerometer_X, -1.0, 1.0);
+							// angle_ax = 90 - TO_DEG*atan(ay/sqrt(ax * ax + az * az)) / 2;
+							// angle_gx = angle_gx + gx * 0.01; // 10 - every 10 ms calculate
+							// angle_gx = angle_gx *(1-FK) + angle_ax * FK;
+							// last_ay = ay;
+							// //angle_gx = MPU6050_Data.Gyroscope_Z;
+							// if (angle_gx > 0) {
+							// 	measurementValue = angle_gx;
+							// 	PID_out = pid_Controller(0, measurementValue);
+							// 	PWM2 = 0;
+							// 	PWM1 = PID_out;
+							// } else {
+							// 	measurementValue = angle_gx * (-1);
+							// 	PID_out = pid_Controller(0, measurementValue);
+							// 	PWM1 = 0;
+							// 	PWM2 = PID_out;
+							// }
 							TIM3->CCR1 = PWM1;
 							TIM3->CCR2 = PWM2;
+							TIM3->CCR3 = PWM3;
+							TIM3->CCR4 = PWM4;
             }
         }
 }
@@ -222,12 +240,15 @@ void clear_RXBuffer(void) {
 		RX_BUF[RXi] = '\0';
 	RXi = 0;
 }
+void clear_RXBuffer2(void) {
+	for (RXi2=0; RXi2<RX_BUF_SIZE; RXi2++)
+		RX_BUF2[RXi2] = '\0';
+	RXi2 = 0;
+}
 
-void toEulerAngle(qw, qx, qy, qz)
+void toEulerAngle()
 {
-	yaw = pow(tan((2 * ((q1 * q2) + (q0 * q3)))/(q0*q0 - q3*q3 - q2*q2 - q1*q1)), -1) * TO_DEG;
-	pitch = pow(sin(-2*(q1*q3 - q2*q0)), -1) * TO_DEG;
-	roll = pow(tan((2*(q2*q3+q1*q0))/(q0*q0 + q3*q3 + q2*q2 +q1*q1)), -1) * TO_DEG;
+
 }
 
 float clamp(float v, float minv, float maxv){
@@ -236,4 +257,17 @@ float clamp(float v, float minv, float maxv){
     else if( v<minv )
         return minv;
     return v;
+}
+double strtd(char* str, int len, char* symbin, int len2,  char symbout) {
+    int num_symb;
+    char* str2;
+    char buf[10];
+    str2 = strstr(str, symbin);
+    num_symb = strchr(str2, symbout) - str2;
+    str2 = str2 + len2;
+    num_symb -= len2;
+    for (int i = 0; i <= num_symb && i < 10; i++) {
+        buf[i] = str2[i];
+    }
+    return atof(buf);
 }
