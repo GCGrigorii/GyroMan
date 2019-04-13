@@ -11,7 +11,7 @@
  *  How often PID control function (pid_Controller) will be called.
  *  Important setting dependent on timer implementation in your program.
  */
-#define SAMPLE_TIME 0.0001F
+#define SAMPLE_TIME 0.05F
 
 /** Parameters for initializing */
 #define INITIAL_INTEGRAL_TERM 0

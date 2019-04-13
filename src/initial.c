@@ -246,24 +246,24 @@ void tim3_init() {
 	 timerPWM2.TIM_OCPolarity = TIM_OCPolarity_High;
 	 TIM_OC2Init(TIM3, &timerPWM2);
 	 //PWM CHANEL 3
-	 TIM_OCStructInit(&timerPWM2);
-	 timerPWM2.TIM_Pulse = 0; //0x1000;
-	 timerPWM2.TIM_OCMode = TIM_OCMode_PWM1;
-	 timerPWM2.TIM_OutputState = TIM_OutputState_Enable;
-	 timerPWM2.TIM_OCPolarity = TIM_OCPolarity_High;
-	 TIM_OC2Init(TIM3, &timerPWM3);
-	 //PWM CHANEL 4
-	 TIM_OCStructInit(&timerPWM2);
-	 timerPWM2.TIM_Pulse = 0; //0x1000;
-	 timerPWM2.TIM_OCMode = TIM_OCMode_PWM1;
-	 timerPWM2.TIM_OutputState = TIM_OutputState_Enable;
-	 timerPWM2.TIM_OCPolarity = TIM_OCPolarity_High;
-	 TIM_OC2Init(TIM3, &timerPWM4);
+	 // TIM_OCStructInit(&timerPWM3);
+	 // timerPWM2.TIM_Pulse = 0; //0x1000;
+	 // timerPWM2.TIM_OCMode = TIM_OCMode_PWM1;
+	 // timerPWM2.TIM_OutputState = TIM_OutputState_Enable;
+	 // timerPWM2.TIM_OCPolarity = TIM_OCPolarity_High;
+	 // TIM_OC2Init(TIM3, &timerPWM3);
+	 // //PWM CHANEL 4
+	 // TIM_OCStructInit(&timerPWM4);
+	 // timerPWM2.TIM_Pulse = 0; //0x1000;
+	 // timerPWM2.TIM_OCMode = TIM_OCMode_PWM1;
+	 // timerPWM2.TIM_OutputState = TIM_OutputState_Enable;
+	 // timerPWM2.TIM_OCPolarity = TIM_OCPolarity_High;
+	 // TIM_OC2Init(TIM3, &timerPWM4);
 
 	 TIM_Cmd(TIM3, ENABLE);
 	 PWM1 = timerPWM1.TIM_Pulse;
 	 PWM2 = timerPWM2.TIM_Pulse;
-	 PWM3 = timerPWM3.TIM_Pulse;
-	 PWM4 = timerPWM4.TIM_Pulse;
+	 // PWM3 = timerPWM3.TIM_Pulse;
+	 // PWM4 = timerPWM4.TIM_Pulse;
 
 }

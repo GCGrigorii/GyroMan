@@ -38,7 +38,26 @@ usart_cmd_ UCMD;
 // TM_MPU6050_t_data MPU6050_Raw_factor;
 // TM_MPU6050_t_data MPU6050_Data;
 // double roll, pitch, yaw;
-double qw, qx, qy, qz;
+typedef struct {
+  double x;
+  double y;
+  double z;
+  double w;
+} Quaternion;
+typedef struct {
+  double x;
+  double y;
+  double z;
+} vector;
+typedef struct {
+  double yaw;
+  double pitch;
+  double roll;
+} YPR;
+
+Quaternion q;
+vector r, g;
+YPR ypr;
 uint8_t MPtrig = 0;
 uint16_t MPcounter;
 
@@ -54,7 +73,8 @@ long int t_next, p_next;
 double K_P = 1;
 double K_I = 0;
 double K_D = 0;
-volatile double referenceValue, measurementValue, PID_out;
+volatile double referenceValue, measurementValue, PID_out, temp_ed;
+uint8_t pidstate = 0, pidcount = 0;
 
 // functions
 void cycle();
@@ -65,6 +85,8 @@ void DMA1_Channel4_IRQHandler(void);
 void clear_RXBuffer(void);
 void clear_RXBuffer2(void);
 void toEulerAngle();
+void getGrav();
+void getYPR();
 float clamp(float, float, float);
 double strtd(char* str, int len, char* symbin, int len2,  char symbout);
 #endif //main_h

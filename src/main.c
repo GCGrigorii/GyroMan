@@ -15,7 +15,7 @@
 //min func
 int main(void) {
 
-	uint8_t sensor1 = 0;
+	// uint8_t sensor1 = 0;
 	init_();
 
 	for(int i = 0; i < 1000000; i++);
@@ -36,7 +36,7 @@ int main(void) {
 	// 	USARTSendDMA(buffer);
 	// 	while(1);
 	// }
-	for(int i = 0; i < 1000000; i++);
+	//for(int i = 0; i < 1000000; i++);
 
 	// for (int i = 0; i < 1000; i++ )
 	// {
@@ -56,6 +56,7 @@ int main(void) {
 	// MPU6050_Raw_factor.Gyroscope_Z = MPU6050_Raw_factor.Gyroscope_Z / 1000;
 
 	pid_Init(K_P, K_I, K_D);
+	// pid_setOutputLimits(0, 3000);
 
 	for(int i = 0; i < 1000000; i++);
     USARTSendDMA("INIT_SUCCESS\r\n");
@@ -75,15 +76,49 @@ void cycle() {
 	{
 		if (RX_FLAG_READ_END)	{
 			RX_FLAG_READ_END = 0;
-			//sprintf(buffer_str, "MPU READED {");
-			qw = strtd(RX_BUF2, RX_BUF_SIZE, "w[", 2, ']');
-			qx = strtd(RX_BUF2, RX_BUF_SIZE, "x[", 2, ']');
-			qy = strtd(RX_BUF2, RX_BUF_SIZE, "y[", 2, ']');
-			qz = strtd(RX_BUF2, RX_BUF_SIZE, "z[", 2, ']');
-			//strcat(buffer_str, RX_BUF2);
-			sprintf(buffer_str, "MPU VAL wxyz[%f;%f;%f;%f]\n\r", qw, qx, qy, qz);
-			//strcat(buffer_str, buffer_str_t);
+			// sprintf(buffer_str, "MPU READED {");
+			q.w = strtd(RX_BUF2, RX_BUF_SIZE, "w[", 2, ']');
+			q.x = strtd(RX_BUF2, RX_BUF_SIZE, "x[", 2, ']');
+			q.y = strtd(RX_BUF2, RX_BUF_SIZE, "y[", 2, ']');
+			q.z = strtd(RX_BUF2, RX_BUF_SIZE, "z[", 2, ']');
+			toEulerAngle();
+			getGrav();
+			getYPR();
+			// strcat(buffer_str, RX_BUF2);
+			// strcat(buffer_str, buffer_str_t);
+			//////////////////////////////////////////PID
+			if (!pidstate & (ypr.yaw != 0)) {
+				if (pidcount > 10) {	pidstate = 1; }
+				else { pidcount++; }
+				referenceValue = ypr.yaw*TO_DEG;
+			}
+			measurementValue = referenceValue - ypr.yaw*TO_DEG;
+			temp_ed = measurementValue;
+			if (measurementValue < 0) { measurementValue *= -1;}
+
+			PID_out = pid_Controller(0, measurementValue);
+			if (temp_ed > 0) {
+				PWM1 = PID_out;
+				PWM3 = PID_out;
+				PWM2 = 0;
+				PWM4 = 0 ;
+			} else {
+				PWM2 = PID_out;
+				PWM4 = PID_out;
+				PWM1 = 0;
+				PWM3 = 0;
+			}
+			TIM3->CCR1 = PWM1;
+			TIM3->CCR2 = PWM2;
+			TIM3->CCR3 = PWM3;
+			TIM3->CCR4 = PWM4;
+
 			if (timer > TIMER_DEF){
+				// sprintf(buffer_str, "MPU VAL wxyz[%f;%f;%f;%f]\n\r", q.w, q.x, q.y, q.z);
+				sprintf(buffer_str, "MPU VAL YPR[%f;%f;%f{%u|%u|%u|%u|%u}{%f}]\n\r", ypr.yaw*TO_DEG,
+				ypr.pitch*TO_DEG, ypr.roll*TO_DEG, PWM1, PWM2, PWM3, PWM4, PID_out,  measurementValue);
+				// sprintf(buffer_str, "MPU VAL XYZ[%f;%f;%f]\n\r",
+				// r.x*TO_DEG, r.y*TO_DEG, r.z*TO_DEG);
 				USARTSendDMA(buffer_str);
 				timer = 0;
 			}
@@ -203,22 +238,7 @@ void TIM4_IRQHandler(void) {
 							// angle_gx = angle_gx *(1-FK) + angle_ax * FK;
 							// last_ay = ay;
 							// //angle_gx = MPU6050_Data.Gyroscope_Z;
-							// if (angle_gx > 0) {
-							// 	measurementValue = angle_gx;
-							// 	PID_out = pid_Controller(0, measurementValue);
-							// 	PWM2 = 0;
-							// 	PWM1 = PID_out;
-							// } else {
-							// 	measurementValue = angle_gx * (-1);
-							// 	PID_out = pid_Controller(0, measurementValue);
-							// 	PWM1 = 0;
-							// 	PWM2 = PID_out;
-							// }
-							TIM3->CCR1 = PWM1;
-							TIM3->CCR2 = PWM2;
-							TIM3->CCR3 = PWM3;
-							TIM3->CCR4 = PWM4;
-            }
+							}
         }
 }
 
@@ -246,9 +266,31 @@ void clear_RXBuffer2(void) {
 	RXi2 = 0;
 }
 
-void toEulerAngle()
-{
+void toEulerAngle() {
+	r.x = atan2(2*q.x*q.y - 2*q.w*q.z, 2*q.w*q.w + 2*q.x*q.x - 1);   // psi
+	r.y = -asin(2*q.x*q.z + 2*q.w*q.y);                              // theta
+	r.z = atan2(2*q.y*q.z - 2*q.w*q.x, 2*q.w*q.w + 2*q.z*q.z - 1);
+}
 
+void getGrav() {
+	g.x = 2 * (q.x*q.z - q.w*q.y);
+	g.y = 2 * (q.w*q.x + q.y*q.z);
+	g.z = q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z;
+}
+
+void getYPR() {
+	ypr.yaw = atan2(2*q.x*q.y - 2*q.w*q.z, 2*q.w*q.w + 2*q.x*q.x - 1);
+	// pitch: (nose up/down, about Y axis)
+	ypr.pitch = atan2(g.x , sqrt(g.y*g.y + g.z*g.z));
+	// roll: (tilt left/right, about X axis)
+	ypr.roll = atan2(g.y , g.z);
+	if (g.z < 0) {
+		if(ypr.pitch > 0) {
+			ypr.pitch = M_PI - ypr.pitch;
+		} else {
+			ypr.pitch = -M_PI - ypr.pitch;
+		}
+	}
 }
 
 float clamp(float v, float minv, float maxv){
