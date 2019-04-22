@@ -4,8 +4,8 @@
 /************************************************************************/
 
 /** Range of allowed PID output range. Needed to avoid sign/overflow problems. */
-#define DEFAULT_MIN_OUT  0
-#define DEFAULT_MAX_OUT  3000
+#define DEFAULT_MIN_OUT  -255
+#define DEFAULT_MAX_OUT  255
 
 /** Sample time in seconds.
  *  How often PID control function (pid_Controller) will be called.

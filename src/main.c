@@ -69,9 +69,11 @@ int main(void) {
 		GPIOB->ODR ^= GPIO_Pin_12;
 		for(int i = 0; i < 1000000; i++);
 	}
+
 }
 
 void cycle() {
+
 	while (1)
 	{
 		if (RX_FLAG_READ_END)	{
@@ -87,26 +89,22 @@ void cycle() {
 			// strcat(buffer_str, RX_BUF2);
 			// strcat(buffer_str, buffer_str_t);
 			//////////////////////////////////////////PID
-			if (!pidstate & (ypr.yaw != 0)) {
+			if (!pidstate & (ypr.roll != 0)) {
 				if (pidcount > 10) {	pidstate = 1; }
 				else { pidcount++; }
-				referenceValue = ypr.yaw*TO_DEG;
+				referenceValue = ypr.roll*TO_DEG;
 			}
-			measurementValue = referenceValue - ypr.yaw*TO_DEG;
+			measurementValue = referenceValue - ypr.roll*TO_DEG;
 			temp_ed = measurementValue;
-			if (measurementValue < 0) { measurementValue *= -1;}
+			// if (measurementValue < 0) { measurementValue *= -1;}
 
-			PID_out = pid_Controller(0, measurementValue);
-			if (temp_ed > 0) {
-				PWM1 = PID_out;
-				PWM3 = PID_out;
-				PWM2 = 0;
-				PWM4 = 0 ;
-			} else {
+			PID_out = pid_Controller(referenceValue, ypr.roll*TO_DEG);
+			if (PID_out > 0) {
 				PWM2 = PID_out;
-				PWM4 = PID_out;
-				PWM1 = 0;
 				PWM3 = 0;
+			} else {
+				PWM3 = -PID_out;
+				PWM2 = 0 ;
 			}
 			TIM3->CCR1 = PWM1;
 			TIM3->CCR2 = PWM2;
@@ -115,11 +113,11 @@ void cycle() {
 
 			if (timer > TIMER_DEF){
 				// sprintf(buffer_str, "MPU VAL wxyz[%f;%f;%f;%f]\n\r", q.w, q.x, q.y, q.z);
-				sprintf(buffer_str, "MPU VAL YPR[%f;%f;%f{%u|%u|%u|%u|%u}{%f}]\n\r", ypr.yaw*TO_DEG,
+				sprintf(buffer_str, "MPU VAL YPR[%f;%f;%f{%u|%u|%u|%u|%f}{%f}]\n\r", ypr.yaw*TO_DEG,
 				ypr.pitch*TO_DEG, ypr.roll*TO_DEG, PWM1, PWM2, PWM3, PWM4, PID_out,  measurementValue);
 				// sprintf(buffer_str, "MPU VAL XYZ[%f;%f;%f]\n\r",
 				// r.x*TO_DEG, r.y*TO_DEG, r.z*TO_DEG);
-				USARTSendDMA(buffer_str);
+				// USARTSendDMA(buffer_str);
 				timer = 0;
 			}
 			timer++;

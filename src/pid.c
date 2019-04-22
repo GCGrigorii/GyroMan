@@ -42,7 +42,6 @@ double pid_Controller(double setPoint, double processValue)
   double out;
 
   error = setPoint - processValue;
-  if (error < 0) { error = - error; }
 
   pidData.integralTerm += pidData.ki * error;
   if (pidData.integralTerm > pidData.MAX_OUT) {

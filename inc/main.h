@@ -70,9 +70,9 @@ int dt = 0;
 long int t_next, p_next;
 
 //PID
-double K_P = 1;
-double K_I = 0;
-double K_D = 0;
+double K_P = 15;
+double K_I = 12.5;
+double K_D = 0.4;
 volatile double referenceValue, measurementValue, PID_out, temp_ed;
 uint8_t pidstate = 0, pidcount = 0;
 

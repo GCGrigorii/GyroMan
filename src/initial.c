@@ -24,10 +24,17 @@ void gpio_init() {
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_5 | GPIO_Pin_4;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
 }
 
 void rcc_init() {
@@ -139,7 +146,7 @@ void uart_init() {
 			- USART LastBit: The clock pulse of the last data bit is not output to
 				the SCLK pin
 		 */
-		USART_InitStructure.USART_BaudRate = 38400;
+		USART_InitStructure.USART_BaudRate = 115200;
 		USART_InitStructure.USART_WordLength = USART_WordLength_8b;
 		USART_InitStructure.USART_StopBits = USART_StopBits_1;
 		USART_InitStructure.USART_Parity = USART_Parity_No;
@@ -149,7 +156,7 @@ void uart_init() {
 
 		USART_InitTypeDef USART_InitStructure2;
 		/* Configure the USART2 */
-		USART_InitStructure2.USART_BaudRate = 38400;
+		USART_InitStructure2.USART_BaudRate = 115200;
 		USART_InitStructure2.USART_WordLength = USART_WordLength_8b;
 		USART_InitStructure2.USART_StopBits = USART_StopBits_1;
 		USART_InitStructure2.USART_Parity = USART_Parity_No;
@@ -226,44 +233,29 @@ void tim3_init() {
 
 	 TIM_TimeBaseStructInit(&TIMER_InitStructure);
 	 TIMER_InitStructure.TIM_CounterMode = TIM_CounterMode_Up;
-	 TIMER_InitStructure.TIM_Prescaler = 7200;
+	 TIMER_InitStructure.TIM_Prescaler = 0;
 	 //TIMER_InitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
-	 TIMER_InitStructure.TIM_Period = 10000 / PWM_FACTOR;
+	 TIMER_InitStructure.TIM_Period = 255;
 	 TIMER_InitStructure.TIM_RepetitionCounter = 0;
 	 TIM_TimeBaseInit(TIM3, &TIMER_InitStructure);
 	 //PWM CHANEL 1
-	 TIM_OCStructInit(&timerPWM1);
-	 timerPWM1.TIM_Pulse = 0; //0x1000;
-	 timerPWM1.TIM_OCMode = TIM_OCMode_PWM1;
-	 timerPWM1.TIM_OutputState = TIM_OutputState_Enable;
-	 timerPWM1.TIM_OCPolarity = TIM_OCPolarity_High;
-	 TIM_OC1Init(TIM3, &timerPWM1);
+	 TIM_OCStructInit(&timerPWM);
+	 timerPWM.TIM_Pulse = 0; //0x1000;
+	 timerPWM.TIM_OCMode = TIM_OCMode_PWM1;
+	 timerPWM.TIM_OutputState = TIM_OutputState_Enable;
+	 timerPWM.TIM_OCPolarity = TIM_OCPolarity_High;
+	 // TIM_OC1Init(TIM3, &timerPWM);
 	 //PWM CHANEL 2
-	 TIM_OCStructInit(&timerPWM2);
-	 timerPWM2.TIM_Pulse = 0; //0x1000;
-	 timerPWM2.TIM_OCMode = TIM_OCMode_PWM1;
-	 timerPWM2.TIM_OutputState = TIM_OutputState_Enable;
-	 timerPWM2.TIM_OCPolarity = TIM_OCPolarity_High;
-	 TIM_OC2Init(TIM3, &timerPWM2);
+	 TIM_OC2Init(TIM3, &timerPWM);
 	 //PWM CHANEL 3
-	 // TIM_OCStructInit(&timerPWM3);
-	 // timerPWM2.TIM_Pulse = 0; //0x1000;
-	 // timerPWM2.TIM_OCMode = TIM_OCMode_PWM1;
-	 // timerPWM2.TIM_OutputState = TIM_OutputState_Enable;
-	 // timerPWM2.TIM_OCPolarity = TIM_OCPolarity_High;
-	 // TIM_OC2Init(TIM3, &timerPWM3);
+	 TIM_OC3Init(TIM3, &timerPWM);
 	 // //PWM CHANEL 4
-	 // TIM_OCStructInit(&timerPWM4);
-	 // timerPWM2.TIM_Pulse = 0; //0x1000;
-	 // timerPWM2.TIM_OCMode = TIM_OCMode_PWM1;
-	 // timerPWM2.TIM_OutputState = TIM_OutputState_Enable;
-	 // timerPWM2.TIM_OCPolarity = TIM_OCPolarity_High;
-	 // TIM_OC2Init(TIM3, &timerPWM4);
+	 // TIM_OC4Init(TIM3, &timerPWM);
 
 	 TIM_Cmd(TIM3, ENABLE);
-	 PWM1 = timerPWM1.TIM_Pulse;
-	 PWM2 = timerPWM2.TIM_Pulse;
-	 // PWM3 = timerPWM3.TIM_Pulse;
-	 // PWM4 = timerPWM4.TIM_Pulse;
+	 PWM1 = timerPWM.TIM_Pulse;
+	 PWM2 = timerPWM.TIM_Pulse;
+	 PWM3 = timerPWM.TIM_Pulse;
+	 PWM4 = timerPWM.TIM_Pulse;
 
 }
