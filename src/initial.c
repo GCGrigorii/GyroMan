@@ -120,12 +120,12 @@ void uart_init() {
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 		GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-		/* Configure USART2 Tx (PA.09) as alternate function push-pull */
+		/* Configure USART2 Tx (PA.02) as alternate function push-pull */
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
 		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 		GPIO_Init(GPIOA, &GPIO_InitStructure);
-		/* Configure USART2 Rx (PA.10) as input floating */
+		/* Configure USART2 Rx (PA.3) as input floating */
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 		GPIO_Init(GPIOA, &GPIO_InitStructure);

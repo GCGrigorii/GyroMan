@@ -1,15 +1,15 @@
 #ifndef main_h
 #define main_h
-
+#define __USE_MISC
 // includes
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "../inc/tm_stm32f4_mpu6050.h"
-#include "../inc/pid.h"
-#include "../inc/initial.h"
-#include "../inc/usart_cmd.h"
+#include "tm_stm32f4_mpu6050.h"
+#include "pid.h"
+#include "initial.h"
+#include "usart_cmd.h"
 // #include "../inc/IMU.h"
 // #include "MadgwickAHRS.h"
 // #include "MahonyAHRS.h"
@@ -70,11 +70,15 @@ int dt = 0;
 long int t_next, p_next;
 
 //PID
-double K_P = 15;
-double K_I = 12.5;
-double K_D = 0.4;
+double K_P = 14; //15
+double K_I = 12; //10
+double K_D = 1.2; //1.2
 volatile double referenceValue, measurementValue, PID_out, temp_ed;
 uint8_t pidstate = 0, pidcount = 0;
+#define MIN_MOTO (double)170
+#define MIN_MOTO_X (double)50
+#define MIN_MOTOM (double)-170
+#define MIN_MOTOM_X (double)-50
 
 // functions
 void cycle();

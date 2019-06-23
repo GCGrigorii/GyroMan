@@ -99,6 +99,15 @@ void cycle() {
 			// if (measurementValue < 0) { measurementValue *= -1;}
 
 			PID_out = pid_Controller(referenceValue, ypr.roll*TO_DEG);
+			if (PID_out > 0) { 
+				if (PID_out > MIN_MOTO_X & PID_out < MIN_MOTO) 
+				{ PID_out = MIN_MOTO; } 
+			}
+			else { 
+				if ((PID_out < MIN_MOTOM_X) & (PID_out > MIN_MOTOM)) 
+				{ PID_out = MIN_MOTOM;} 
+			}
+									
 			if (PID_out > 0) {
 				PWM2 = PID_out;
 				PWM3 = 0;
@@ -117,7 +126,7 @@ void cycle() {
 				ypr.pitch*TO_DEG, ypr.roll*TO_DEG, PWM1, PWM2, PWM3, PWM4, PID_out,  measurementValue);
 				// sprintf(buffer_str, "MPU VAL XYZ[%f;%f;%f]\n\r",
 				// r.x*TO_DEG, r.y*TO_DEG, r.z*TO_DEG);
-				// USARTSendDMA(buffer_str);
+				USARTSendDMA(buffer_str);
 				timer = 0;
 			}
 			timer++;

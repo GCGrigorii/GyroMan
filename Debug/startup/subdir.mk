@@ -15,7 +15,7 @@ startup/%.o: ../startup/%.s
 	@echo 'Building file: $<'
 	@echo 'Invoking: MCU GCC Assembler'
 	@echo $(PWD)
-	arm-none-eabi-as -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -I"/home/grigorii/Dev/GyroMan/StdPeriph_Driver/inc" -I"/home/grigorii/Dev/GyroMan/inc" -I"/home/grigorii/Dev/GyroMan/CMSIS/device" -I"/home/grigorii/Dev/GyroMan/CMSIS/core" -g -o "$@" "$<"
+	arm-none-eabi-as -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -I"/home/grigorii/Dev/STM_Projects/GyroMan/StdPeriph_Driver/inc" -I"/home/grigorii/Dev/STM_Projects/GyroMan/inc" -I"/home/grigorii/Dev/STM_Projects/GyroMan/CMSIS/device" -I"/home/grigorii/Dev/STM_Projects/GyroMan/CMSIS/core" -g -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
